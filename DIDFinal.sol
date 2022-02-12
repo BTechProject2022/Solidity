@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0
+
 pragma solidity >=0.6.0 <0.7.0;
 pragma experimental ABIEncoderV2;
 
@@ -18,7 +20,6 @@ pragma experimental ABIEncoderV2;
 
 contract DIDContract {
 
-
     struct PublicKey {
         string id;
         string owner;
@@ -35,18 +36,20 @@ contract DIDContract {
     event CreateDidEvent(string id);
     event GetDidEvent(DIDDocument did);
 
-
     mapping(string => DIDDocument) public didStore;
     string empty = "";
 
     string[] context = ["https://www.w3.org/ns/did/v1","https://identity.foundation/EcdsaSecp256k1RecoverySignature2020/lds-ecdsa-secp256k1-recovery2020-0.0.jsonld"];
 
-    function getDid(string memory did) public returns (DIDDocument memory)  {
-        require(bytes(didStore[did].id).length != 0,"DID does not exist");
+    modifier checkDidExists(string memory _did) {
+        require(bytes(didStore[_did].id).length != 0,"DID does not exist");
+        _;
+    }
+
+    function getDid(string memory did) public checkDidExists(did) returns (DIDDocument memory)  {
         emit GetDidEvent(didStore[did]);
         return didStore[did];
     }
-
 
     function createDID(string memory addr, string memory pubKey) public returns (string memory) {
         // require(addr!=address(0x0),"Parameters cannot be null");
@@ -74,5 +77,4 @@ contract DIDContract {
         emit CreateDidEvent(id);
         return id;
     } 
-
 }
