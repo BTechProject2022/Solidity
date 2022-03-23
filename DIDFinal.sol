@@ -17,9 +17,7 @@ pragma experimental ABIEncoderV2;
  * @dev This contract is did logic implementation
  */
 
-
 contract DIDContract {
-
     struct PublicKey {
         string id;
         string owner;
@@ -30,6 +28,7 @@ contract DIDContract {
     struct DIDDocument {
         string[] context;
         string id;
+        string name;
         PublicKey publicKey;
     }
 
@@ -39,42 +38,54 @@ contract DIDContract {
     mapping(string => DIDDocument) public didStore;
     string empty = "";
 
-    string[] context = ["https://www.w3.org/ns/did/v1","https://identity.foundation/EcdsaSecp256k1RecoverySignature2020/lds-ecdsa-secp256k1-recovery2020-0.0.jsonld"];
+    string[] context = [
+        "https://www.w3.org/ns/did/v1",
+        "https://identity.foundation/EcdsaSecp256k1RecoverySignature2020/lds-ecdsa-secp256k1-recovery2020-0.0.jsonld"
+    ];
 
     modifier checkDidExists(string memory _did) {
-        require(bytes(didStore[_did].id).length != 0,"DID does not exist");
+        require(bytes(didStore[_did].id).length != 0, "DID does not exist");
         _;
     }
 
-    function getDid(string memory did) public checkDidExists(did) returns (DIDDocument memory)  {
+    function getDid(string memory did)
+        public
+        checkDidExists(did)
+        returns (DIDDocument memory)
+    {
         emit GetDidEvent(didStore[did]);
         return didStore[did];
     }
 
-    function createDID(string memory addr, string memory pubKey) public returns (string memory) {
+    function createDID(
+        string memory addr,
+        string memory pubKey,
+        string memory name
+    ) public returns (string memory) {
         // require(addr!=address(0x0),"Parameters cannot be null");
         // require(keccak256(bytes(pubKey).length) == keccak256(bytes(empty)),"Parameters cannot be null");
-        require(bytes(pubKey).length != 0,"Parameters cannot be null");
-        require(bytes(addr).length != 0,"Parameters cannot be null");
+        require(bytes(pubKey).length != 0, "Parameters cannot be null");
+        require(bytes(addr).length != 0, "Parameters cannot be null");
         bytes memory b;
         b = abi.encodePacked("did:ethr:");
-        b = abi.encodePacked(b, addr);  
+        b = abi.encodePacked(b, addr);
         // string memory base = "did:ethr:";
-        string memory id= string(b);
+        string memory id = string(b);
         PublicKey memory publicKey;
         b = abi.encodePacked(id);
-        b = abi.encodePacked(b, "#keys-1");  
+        b = abi.encodePacked(b, "#keys-1");
         // string memory base = "did:ethr:";
         // string memory id= string(b);
         publicKey.id = string(b);
-        publicKey.owner= id;
-        publicKey.methodType= "Ed25519VerificationKey2020";
-        publicKey.publicKey= pubKey;
+        publicKey.owner = id;
+        publicKey.methodType = "Ed25519VerificationKey2020";
+        publicKey.publicKey = pubKey;
         // DIDDocument memory did;
         didStore[id].context = context;
         didStore[id].id = id;
-        didStore[id].publicKey=publicKey; 
+        didStore[id].name = name;
+        didStore[id].publicKey = publicKey;
         emit CreateDidEvent(id);
         return id;
-    } 
+    }
 }
