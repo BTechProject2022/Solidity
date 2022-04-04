@@ -30,6 +30,7 @@ contract DIDContract {
         string id;
         string name;
         PublicKey publicKey;
+        string recovery;
     }
 
     event CreateDidEvent(string id);
@@ -55,6 +56,22 @@ contract DIDContract {
     {
         emit GetDidEvent(didStore[did]);
         return didStore[did];
+    }
+
+    function setRecovery(string memory did, string memory recovery)
+        public
+        checkDidExists(did)
+    {
+        require(bytes(recovery).length != 0, "Recovery hash cannot be null");
+        didStore[did].recovery = recovery;
+    }
+
+    function getRecovery(string memory did)
+        public
+        checkDidExists(did)
+        returns (string memory)
+    {
+        return didStore[did].recovery;
     }
 
     function createDID(
@@ -84,6 +101,7 @@ contract DIDContract {
         didStore[id].context = context;
         didStore[id].id = id;
         didStore[id].name = name;
+        didStore[id].recovery = "";
         didStore[id].publicKey = publicKey;
         emit CreateDidEvent(id);
         return id;
